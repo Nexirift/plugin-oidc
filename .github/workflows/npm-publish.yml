@@ -8,22 +8,8 @@ on:
     types: [created]
 
 jobs:
-  build:
-    name: 🏗️ Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: 🧶 Install dependencies
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install
-
   publish-npm:
     name: 🚀 Publish to NPM
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -35,6 +21,8 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install
+      - run: npm run build
+        name: 🏗️ Build
       - run: npm publish
         name: 📦 Publish
         env:
