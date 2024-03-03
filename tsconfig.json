@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "outDir": "dist",
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "importHelpers": true,
+      "experimentalDecorators": true,
+      "module": "NodeNext",
+      "target": "es2022",
+      "lib": ["esnext"],
+      "emitDecoratorMetadata": true,
+      "sourceMap": false,
+      "declaration": true,
+      "noImplicitThis": true,
+      "strict": true,
+      "alwaysStrict": true,
+      "noImplicitReturns": true,
+      "noUnusedLocals": false,
+      "resolveJsonModule": true,
+      "skipLibCheck": true,
+      "jsx": "preserve"
+    },
+    "exclude": ["**/dist", "**/temp", "**/.bob", "**/examples", "**/benchmark"]
+  }
+  
