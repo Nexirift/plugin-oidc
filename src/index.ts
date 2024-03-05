@@ -29,12 +29,6 @@ export interface KeycloakPluginOptionsBase {
 	extendContextField?: string;
 
 	/**
-	 * The time in seconds before the token payload is considered expired.
-	 * @default 60
-	 */
-	expiration?: number;
-
-	/**
 	 * The prefix to use for the Redis cache keys.
 	 * @default 'tokens'
 	 */
@@ -61,7 +55,6 @@ export interface KeycloakPluginOptionsBase {
 export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 	// Destructure the options object and assign default values
 	const {
-		expiration = 60,
 		cachePrefix = 'tokens',
 		extendContextField = 'keycloak',
 		keycloak,
@@ -94,7 +87,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 						// Set the expiration time for the token content
 						await redis.expire(
 							`${cachePrefix}:${token}`,
-							expiration
+							kcToken.content.exp - Math.floor(Date.now() / 1000)
 						);
 					} catch (ex) {
 						// If the token is invalid, throw an unauthorized error
