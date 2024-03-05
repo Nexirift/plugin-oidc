@@ -1,3 +1,7 @@
+![NPM Version](https://img.shields.io/npm/v/%40nexirift%2Fplugin-keycloak)
+![NPM License](https://img.shields.io/npm/l/%40nexirift%2Fplugin-keycloak)
+![NPM Downloads](https://img.shields.io/npm/dt/%40nexirift%2Fplugin-keycloak)
+
 # plugin-keycloak
 A basic [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga) plugin that adds functionality to authenticate users using the [Keycloak](https://www.keycloak.org/) service.
 
