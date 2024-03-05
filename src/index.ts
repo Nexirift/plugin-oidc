@@ -12,32 +12,44 @@ export type KeycloakPluginOptions = KeycloakPluginOptionsBase;
  * Represents the options for the Keycloak plugin.
  */
 export interface KeycloakPluginOptionsBase {
-    /**
-     * The Keycloak instance to use for token verification.
-     */
-    keycloak: Keycloak;
+	/**
+	 * The Keycloak instance to use for token verification.
+	 */
+	keycloak: Keycloak;
 
-    /**
-     * The Redis client to use for caching token payloads.
-     */
-    redis: ReturnType<typeof createClient>;
+	/**
+	 * The Redis client to use for caching token payloads.
+	 */
+	redis: ReturnType<typeof createClient>;
 
-    /**
-     * The field to use to extend the context with the token payload.
-     * @default 'keycloak'
-     */
-    extendContextField?: string;
-    
-    /**
-     * A function that retrieves the token for authentication.
-     * @param params - The parameters for token retrieval.
-     * @returns A promise that resolves to the token or undefined, or the token itself, or undefined.
-     */
-    getToken?: (params: {
-        request: Request;
-        serverContext: object | undefined;
-        url: URL;
-    }) => Promise<string | undefined> | string | undefined;
+	/**
+	 * The field to use to extend the context with the token payload.
+	 * @default 'keycloak'
+	 */
+	extendContextField?: string;
+
+	/**
+	 * The time in seconds before the token payload is considered expired.
+	 * @default 60
+	 */
+	expiration?: number;
+
+	/**
+	 * The prefix to use for the Redis cache keys.
+	 * @default 'tokens'
+	 */
+	cachePrefix?: string;
+
+	/**
+	 * A function that retrieves the token for authentication.
+	 * @param params - The parameters for token retrieval.
+	 * @returns A promise that resolves to the token or undefined, or the token itself, or undefined.
+	 */
+	getToken?: (params: {
+		request: Request;
+		serverContext: object | undefined;
+		url: URL;
+	}) => Promise<string | undefined> | string | undefined;
 }
 
 /**
@@ -47,76 +59,104 @@ export interface KeycloakPluginOptionsBase {
  * @returns A Plugin object that can be used with GraphQL Yoga.
  */
 export function useKeycloak(options: KeycloakPluginOptions): Plugin {
-    // Destructure the options object and assign default values
-    const { extendContextField = 'keycloak', keycloak, redis, getToken = defaultGetToken } = options;
+	// Destructure the options object and assign default values
+	const {
+		expiration = 60,
+		cachePrefix = 'tokens',
+		extendContextField = 'keycloak',
+		keycloak,
+		redis,
+		getToken = defaultGetToken
+	} = options;
 
-    // Create a WeakMap to store the token payload by request
-    const payloadByRequest = new WeakMap<Request, ITokenContent | string>();
+	// Create a WeakMap to store the token payload by request
+	const payloadByRequest = new WeakMap<Request, ITokenContent | string>();
 
-    return {
-        async onRequestParse({ request, serverContext, url }) {
-            const token = await getToken({ request, serverContext, url });
-            if (token != null) {
-                
-                // Check if the token exists in the Redis cache
-                if (!(await redis.exists(token))) {
-                    try {
-                        const kcToken = await keycloak.jwt.verify(token);
-                        await redis.set(token, JSON.stringify(kcToken.content));
-                        await redis.expire(token, 60);
-                    }
-                    catch (ex) {
-                        throw unauthorizedError("The provided access token is invalid.");
-                    }
-                }
+	return {
+		async onRequestParse({ request, serverContext, url }) {
+			// Retrieve the token using the getToken function
+			const token = await getToken({ request, serverContext, url });
 
-                // Retrieve the token content from the Redis cache
-                const ct = await redis.get(token);
+			// Check if the token is not null
+			if (token != null) {
+				// Check if the token exists in the Redis cache
+				if (!(await redis.exists(`${cachePrefix}:${token}`))) {
+					try {
+						// Verify the token using the Keycloak instance
+						const kcToken = await keycloak.jwt.verify(token);
 
-                if (!ct) {
-                    throw unauthorizedError(`An invalid or expired access token was provided.`);
-                }
+						// Store the token content in the Redis cache
+						await redis.set(
+							`${cachePrefix}:${token}`,
+							JSON.stringify(kcToken.content)
+						);
 
-                // Store the token content in the payloadByRequest WeakMap
-                payloadByRequest.set(request, JSON.parse(ct));
-            }
-        },
-        onContextBuilding({ context, extendContext }) {
-            // Check if the request object is available in the context
-            if (context.request == null) {
-                throw new Error(
-                    'Request is not available on context! Make sure you use this plugin with GraphQL Yoga.',
-                );
-            }
-            // Retrieve the token payload from the WeakMap using the request object
-            const payload = payloadByRequest.get(context.request);
-            if (payload != null) {
-                // Extend the context with the token payload using the specified field name
-                extendContext({
-                    [extendContextField]: payload,
-                });
-            }
-        },
-    };
+						// Set the expiration time for the token content
+						await redis.expire(
+							`${cachePrefix}:${token}`,
+							expiration
+						);
+					} catch (ex) {
+						// If the token is invalid, throw an unauthorized error
+						throw unauthorizedError(
+							'The provided access token is invalid.'
+						);
+					}
+				}
+
+				// Retrieve the token content from the Redis cache
+				const ct = await redis.get(`${cachePrefix}:${token}`);
+
+				// If the token is not found in the cache, throw an unauthorized error
+				if (!ct) {
+					throw unauthorizedError(
+						`An invalid or expired access token was provided.`
+					);
+				}
+
+				// Store the token content in the payloadByRequest WeakMap
+				payloadByRequest.set(request, JSON.parse(ct));
+			}
+		},
+		onContextBuilding({ context, extendContext }) {
+			// Check if the request object is available in the context
+			if (context.request == null) {
+				throw new Error(
+					'Request is not available on context! Make sure you use this plugin with GraphQL Yoga.'
+				);
+			}
+			// Retrieve the token payload from the WeakMap using the request object
+			const payload = payloadByRequest.get(context.request);
+			if (payload != null) {
+				// Extend the context with the token payload using the specified field name
+				extendContext({
+					[extendContextField]: payload
+				});
+			}
+		}
+	};
 }
 
 /**
  * Creates a GraphQL error with the provided message and options.
- * 
+ *
  * @param message - The error message.
  * @param options - Additional options for the error.
  * @returns The GraphQL error.
  */
-function unauthorizedError(message: string, options?: Parameters<typeof createGraphQLError>[1]) {
-    // Create a GraphQL error with the provided message and options
-    return createGraphQLError(message, {
-        extensions: {
-            http: {
-                status: 401, // Set the HTTP status code to 401 (Unauthorized)
-            },
-        },
-        ...options,
-    });
+function unauthorizedError(
+	message: string,
+	options?: Parameters<typeof createGraphQLError>[1]
+) {
+	// Create a GraphQL error with the provided message and options
+	return createGraphQLError(message, {
+		extensions: {
+			http: {
+				status: 401 // Set the HTTP status code to 401 (Unauthorized)
+			}
+		},
+		...options
+	});
 }
 
 /**
@@ -127,16 +167,18 @@ function unauthorizedError(message: string, options?: Parameters<typeof createGr
  * @returns The extracted token or undefined if no token is found.
  * @throws An unauthorizedError if an unsupported token type is provided.
  */
-const defaultGetToken: NonNullable<KeycloakPluginOptions['getToken']> = ({ request }: any) => {
-    // Extract the token from the Authorization header
-    const header = request.headers.get('authorization');
-    if (!header) {
-        return; // No token found
-    }
-    // Currently, we only support the Bearer token.
-    const [type, token] = header.split(' ');
-    if (type !== 'Bearer') {
-        throw unauthorizedError(`Unsupported token type provided: "${type}"`);
-    }
-    return token; // Return the extracted token
+const defaultGetToken: NonNullable<KeycloakPluginOptions['getToken']> = ({
+	request
+}: any) => {
+	// Extract the token from the Authorization header
+	const header = request.headers.get('authorization');
+	if (!header) {
+		return; // No token found
+	}
+	// Currently, we only support the Bearer token.
+	const [type, token] = header.split(' ');
+	if (type !== 'Bearer') {
+		throw unauthorizedError(`Unsupported token type provided: "${type}"`);
+	}
+	return token; // Return the extracted token
 };
