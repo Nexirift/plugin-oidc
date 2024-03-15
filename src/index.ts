@@ -11,6 +11,9 @@ export type KeycloakPluginOptions = KeycloakPluginOptionsBase;
 /**
  * Represents the options for the Keycloak plugin.
  */
+/**
+ * Represents the options for the Keycloak plugin.
+ */
 export interface KeycloakPluginOptionsBase {
 	/**
 	 * The Keycloak instance to use for token verification.
@@ -33,6 +36,11 @@ export interface KeycloakPluginOptionsBase {
 	 * @default 'tokens'
 	 */
 	cachePrefix?: string;
+
+	/**
+	 * The roles that are allowed to authenticate.
+	 */
+	allowedRoles?: string[];
 
 	/**
 	 * A function that retrieves the token for authentication.
@@ -59,6 +67,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 		extendContextField = 'keycloak',
 		keycloak,
 		redis,
+		allowedRoles,
 		getToken = defaultGetToken
 	} = options;
 
@@ -105,6 +114,20 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 					throw unauthorizedError(
 						`An invalid or expired access token was provided.`
 					);
+				}
+
+				// Check if the token has the necessary roles
+				if (allowedRoles) {
+					const roles = JSON.parse(ct).realm_access.roles;
+					if (
+						!roles.some((role: string) =>
+							allowedRoles.includes(role)
+						)
+					) {
+						throw unauthorizedError(
+							`You do not have the necessary permissions to access this resource.`
+						);
+					}
 				}
 
 				// Store the token content in the payloadByRequest WeakMap
