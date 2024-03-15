@@ -11,12 +11,6 @@ export type KeycloakPluginOptions = KeycloakPluginOptionsBase;
 /**
  * Represents the options for the Keycloak plugin.
  */
-/**
- * Represents the options for the Keycloak plugin.
- */
-/**
- * Represents the options for the Keycloak plugin.
- */
 export interface KeycloakPluginOptionsBase {
 	/**
 	 * The Keycloak instance to use for token verification.
@@ -53,6 +47,16 @@ export interface KeycloakPluginOptionsBase {
 	requireAuth?: boolean;
 
 	/**
+	 * The messages to use for different authentication errors.
+	 */
+	messages?: {
+		invalidToken: string;
+		expiredToken: string;
+		invalidPermissions: string;
+		authRequired: string;
+	};
+
+	/**
 	 * A function that retrieves the token for authentication.
 	 * @param params - The parameters for token retrieval.
 	 * @returns A promise that resolves to the token or undefined, or the token itself, or undefined.
@@ -79,6 +83,13 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 		cachePrefix = 'tokens',
 		allowedRoles = [],
 		requireAuth = false,
+		messages = {
+			invalidToken: 'The provided access token is invalid.',
+			expiredToken: 'An invalid or expired access token was provided.',
+			invalidPermissions:
+				'You do not have the necessary permissions to access this resource.',
+			authRequired: 'Authentication is required to access this resource.'
+		},
 		getToken = defaultGetToken
 	} = options;
 
@@ -111,9 +122,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 						);
 					} catch (ex) {
 						// If the token is invalid, throw an unauthorized error
-						throw unauthorizedError(
-							'The provided access token is invalid.'
-						);
+						throw unauthorizedError(messages.invalidToken);
 					}
 				}
 
@@ -122,9 +131,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 
 				// If the token is not found in the cache, throw an unauthorized error
 				if (!ct) {
-					throw unauthorizedError(
-						`An invalid or expired access token was provided.`
-					);
+					throw unauthorizedError(messages.expiredToken);
 				}
 
 				// Check if the token has the necessary roles
@@ -135,9 +142,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 							allowedRoles.includes(role)
 						)
 					) {
-						throw unauthorizedError(
-							`You do not have the necessary permissions to access this resource.`
-						);
+						throw unauthorizedError(messages.invalidPermissions);
 					}
 				}
 
@@ -146,9 +151,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 			} else {
 				// If authentication is required, throw an unauthorized error
 				if (requireAuth) {
-					throw unauthorizedError(
-						'Authentication is required to access this resource.'
-					);
+					throw unauthorizedError(messages.authRequired);
 				}
 			}
 		},
