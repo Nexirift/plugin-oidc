@@ -14,6 +14,9 @@ export type KeycloakPluginOptions = KeycloakPluginOptionsBase;
 /**
  * Represents the options for the Keycloak plugin.
  */
+/**
+ * Represents the options for the Keycloak plugin.
+ */
 export interface KeycloakPluginOptionsBase {
 	/**
 	 * The Keycloak instance to use for token verification.
@@ -39,8 +42,15 @@ export interface KeycloakPluginOptionsBase {
 
 	/**
 	 * The roles that are allowed to authenticate.
+	 * @default []
 	 */
 	allowedRoles?: string[];
+
+	/**
+	 * Specifies whether authentication is required.
+	 * @default false
+	 */
+	requireAuth?: boolean;
 
 	/**
 	 * A function that retrieves the token for authentication.
@@ -63,11 +73,12 @@ export interface KeycloakPluginOptionsBase {
 export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 	// Destructure the options object and assign default values
 	const {
-		cachePrefix = 'tokens',
-		extendContextField = 'keycloak',
 		keycloak,
 		redis,
-		allowedRoles,
+		extendContextField = 'keycloak',
+		cachePrefix = 'tokens',
+		allowedRoles = [],
+		requireAuth = false,
 		getToken = defaultGetToken
 	} = options;
 
@@ -132,6 +143,13 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 
 				// Store the token content in the payloadByRequest WeakMap
 				payloadByRequest.set(request, JSON.parse(ct));
+			} else {
+				// If authentication is required, throw an unauthorized error
+				if (requireAuth) {
+					throw unauthorizedError(
+						'Authentication is required to access this resource.'
+					);
+				}
 			}
 		},
 		onContextBuilding({ context, extendContext }) {
