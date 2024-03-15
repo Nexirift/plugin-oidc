@@ -81,7 +81,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 		redis,
 		extendContextField = 'keycloak',
 		cachePrefix = 'tokens',
-		allowedRoles = [],
+		allowedRoles,
 		requireAuth = false,
 		messages = {
 			invalidToken: 'The provided access token is invalid.',
@@ -135,7 +135,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 				}
 
 				// Check if the token has the necessary roles
-				if (allowedRoles) {
+				if (allowedRoles && allowedRoles.length > 0) {
 					const roles = JSON.parse(ct).realm_access.roles;
 					if (
 						!roles.some((role: string) =>
