@@ -21,6 +21,6 @@
       "skipLibCheck": true,
       "jsx": "preserve"
     },
-    "exclude": ["**/dist", "**/temp", "**/.bob", "**/examples", "**/benchmark"]
+    "exclude": ["**/dist", "**/temp", "**/.bob", "**/examples", "**/benchmark", "node_modules"]
   }
   
