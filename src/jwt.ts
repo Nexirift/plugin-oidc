@@ -4,24 +4,24 @@
  * At the time of copying this file, the library was licensed under the MIT license.
  */
 
-import { KeycloakToken } from './token'
-import { IInternalConfig } from './index'
+import { decode } from 'jsonwebtoken'
+import { IInternalConfig, KeycloakToken } from './index'
 import { AxiosInstance } from 'axios'
 
 export class Jwt {
-  constructor (private readonly config: IInternalConfig, private readonly request: AxiosInstance) {}
+  constructor(private readonly config: IInternalConfig, private readonly request: AxiosInstance) { }
 
-  decode (accessToken: string): KeycloakToken {
-    return new KeycloakToken(accessToken)
+  decode(accessToken: string): KeycloakToken {
+    return decode(accessToken, { json: true }) as KeycloakToken
   }
 
-  async verify (accessToken: string): Promise<KeycloakToken> {
+  async verify(accessToken: string): Promise<KeycloakToken> {
     await this.request.get(`${this.config.prefix}/realms/${this.config.realm}/protocol/openid-connect/userinfo`, {
       headers: {
         Authorization: 'Bearer ' + accessToken
       }
     })
 
-    return new KeycloakToken(accessToken)
+    return decode(accessToken, { json: true }) as KeycloakToken
   }
 }

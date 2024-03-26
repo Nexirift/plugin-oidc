@@ -4,7 +4,7 @@
 
 import { createGraphQLError, Plugin } from 'graphql-yoga';
 import { createClient } from 'redis';
-import { ITokenContent, KeycloakToken } from './token';
+import { KeycloakToken } from './token';
 import { Keycloak } from './keycloak';
 
 export type KeycloakPluginOptions = KeycloakPluginOptionsBase;
@@ -95,7 +95,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 	} = options;
 
 	// Create a WeakMap to store the token payload by request
-	const payloadByRequest = new WeakMap<Request, ITokenContent | string>();
+	const payloadByRequest = new WeakMap<Request, KeycloakToken | string>();
 
 	return {
 		async onRequestParse({ request, serverContext, url }) {
@@ -113,13 +113,13 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 						// Store the token content in the Redis cache
 						await redis.set(
 							`${cachePrefix}:${token}`,
-							JSON.stringify(kcToken.content)
+							JSON.stringify(kcToken)
 						);
 
 						// Set the expiration time for the token content
 						await redis.expire(
 							`${cachePrefix}:${token}`,
-							kcToken.content.exp - Math.floor(Date.now() / 1000)
+							kcToken.exp - Math.floor(Date.now() / 1000)
 						);
 					} catch (ex) {
 						// If the token is invalid, throw an unauthorized error
