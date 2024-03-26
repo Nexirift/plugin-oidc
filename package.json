@@ -1,6 +1,6 @@
 {
 	"name": "@nexirift/plugin-keycloak",
-	"version": "1.1.4",
+	"version": "1.1.5",
 	"type": "commonjs",
 	"description": "Plugin for GraphQL Yoga that adds Keycloak authentication and authorization.",
 	"author": "Nexirift",
