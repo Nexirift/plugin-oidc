@@ -97,7 +97,7 @@ export class KeycloakToken {
     }
   }
   
-export function hasScopes(scopes: string[], token: ITokenContent) {
+export function hasScopes(token: ITokenContent, scopes: string[]) {
   const tokenScopes = token.scope.split(' ');
   return scopes.every(scope => tokenScopes.includes(scope));
 }
