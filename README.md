@@ -13,6 +13,16 @@ This plugin checks an access token which is a `Bearer` token on the `Authenticat
 
 Please see [here](https://github.com/Nexirift/plugin-keycloak-example) for an example of how to use the project.
 
+## Disclaimer
+
+We are working on trying to stop depending on so many dependencies. As part of this, we have copied some code from the keycloak-backend library. This project, at the time of writing, is using the MIT license. The files that were took were:
+
+- `Token.ts` -> `token.ts`
+- `Keycloak.ts` -> `keycloak.ts`
+- `Jwt.ts` -> `jwt.ts`
+
+We plan to adapt these files more as we change around our codebase. For example, the new scopes feature that was mentioned in issue [#2](https://github.com/Nexirift/plugin-keycloak/issues/2).
+
 ## Credits
 
 Disclaimer: This plugin was based off of the plugin-jwt source code.
