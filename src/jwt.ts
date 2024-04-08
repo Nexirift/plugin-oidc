@@ -16,10 +16,9 @@ export class Jwt {
   }
 
   async verify(accessToken: string): Promise<OIDCToken> {
-    await this.request.get(this.config.introspect_url, {
-      headers: {
-        Authorization: 'Bearer ' + accessToken
-      }
+    await this.request.post(this.config.introspect_url, {
+      clientId: this.config.client_id,
+      clientSecret: this.config.client_secret
     })
 
     return decode(accessToken, { json: true }) as OIDCToken
