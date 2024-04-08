@@ -1,4 +1,4 @@
 export * from './plugin';
-export * from './keycloak';
+export * from './oidc';
 export * from './jwt';
 export * from './token';

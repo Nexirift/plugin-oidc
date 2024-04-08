@@ -5,18 +5,18 @@
  */
 
 import { decode } from 'jsonwebtoken'
-import { IInternalConfig, KeycloakToken } from './index'
+import { IExternalConfig, KeycloakToken } from './index'
 import { AxiosInstance } from 'axios'
 
 export class Jwt {
-  constructor(private readonly config: IInternalConfig, private readonly request: AxiosInstance) { }
+  constructor(private readonly config: IExternalConfig, private readonly request: AxiosInstance) { }
 
   decode(accessToken: string): KeycloakToken {
     return decode(accessToken, { json: true }) as KeycloakToken
   }
 
   async verify(accessToken: string): Promise<KeycloakToken> {
-    await this.request.get(`${this.config.prefix}/realms/${this.config.realm}/protocol/openid-connect/userinfo`, {
+    await this.request.get(this.config.introspect_url, {
       headers: {
         Authorization: 'Bearer ' + accessToken
       }

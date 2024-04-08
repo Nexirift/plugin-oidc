@@ -5,7 +5,7 @@
 import { createGraphQLError, Plugin } from 'graphql-yoga';
 import { createClient } from 'redis';
 import { KeycloakToken } from './token';
-import { Keycloak } from './keycloak';
+import { Keycloak } from './oidc';
 
 export type KeycloakPluginOptions = KeycloakPluginOptionsBase;
 
