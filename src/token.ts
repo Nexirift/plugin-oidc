@@ -17,6 +17,7 @@ export class OIDCToken {
   preferred_username?: string;
   email_verified?: boolean;
   scope: string;
+  active?: boolean;
 
   constructor(tokenContent: OIDCToken) {
     this.iss = tokenContent.iss;
@@ -31,6 +32,7 @@ export class OIDCToken {
     this.preferred_username = tokenContent.preferred_username;
     this.email_verified = tokenContent.email_verified;
     this.scope = tokenContent.scope;
+    this.active = tokenContent.active;
   }
 
   public hasScopes(scopes: string[]): boolean {

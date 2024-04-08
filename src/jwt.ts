@@ -4,23 +4,29 @@
  * At the time of copying this file, the library was licensed under the MIT license.
  */
 
-import { decode } from 'jsonwebtoken'
-import { IExternalConfig, OIDCToken } from './index'
-import { AxiosInstance } from 'axios'
+import { IExternalConfig, OIDCToken } from './index';
+import { AxiosInstance } from 'axios';
 
 export class Jwt {
-  constructor(private readonly config: IExternalConfig, private readonly request: AxiosInstance) { }
+	constructor(
+		private readonly config: IExternalConfig,
+		private readonly request: AxiosInstance
+	) {}
 
-  decode(accessToken: string): OIDCToken {
-    return decode(accessToken, { json: true }) as OIDCToken
-  }
-
-  async verify(accessToken: string): Promise<OIDCToken> {
-    await this.request.post(this.config.introspect_url, {
-      clientId: this.config.client_id,
-      clientSecret: this.config.client_secret
-    })
-
-    return decode(accessToken, { json: true }) as OIDCToken
-  }
+	async verify(accessToken: string): Promise<OIDCToken> {
+		const request = await this.request.post(
+			this.config.introspect_url,
+			{
+				token: accessToken,
+				client_id: this.config.client_id,
+				client_secret: this.config.client_secret
+			},
+			{
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			}
+		);
+		return request.data as OIDCToken;
+	}
 }

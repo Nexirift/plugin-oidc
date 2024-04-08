@@ -108,21 +108,27 @@ export function useOIDC(options: OIDCPluginOptions): Plugin {
 				if (!(await redis.exists(`${cachePrefix}:${token}`))) {
 					try {
 						// Verify the token using the OIDC instance
-						const kcToken = await oidc.jwt.verify(token);
+						const oidcToken = await oidc.jwt.verify(token);
+
+						if (!oidcToken.active) {
+							// If the token is not active, throw an unauthorized error
+							throw unauthorizedError(messages.invalidToken);
+						}
 
 						// Store the token content in the Redis cache
 						await redis.set(
 							`${cachePrefix}:${token}`,
-							JSON.stringify(kcToken)
+							JSON.stringify(oidcToken)
 						);
 
 						// Set the expiration time for the token content
 						await redis.expire(
 							`${cachePrefix}:${token}`,
-							kcToken.exp - Math.floor(Date.now() / 1000)
+							oidcToken.exp - Math.floor(Date.now() / 1000)
 						);
 					} catch (ex) {
 						// If the token is invalid, throw an unauthorized error
+						console.log(ex);
 						throw unauthorizedError(messages.invalidToken);
 					}
 				}
