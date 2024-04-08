@@ -5,23 +5,23 @@
  */
 
 import { decode } from 'jsonwebtoken'
-import { IExternalConfig, KeycloakToken } from './index'
+import { IExternalConfig, OIDCToken } from './index'
 import { AxiosInstance } from 'axios'
 
 export class Jwt {
   constructor(private readonly config: IExternalConfig, private readonly request: AxiosInstance) { }
 
-  decode(accessToken: string): KeycloakToken {
-    return decode(accessToken, { json: true }) as KeycloakToken
+  decode(accessToken: string): OIDCToken {
+    return decode(accessToken, { json: true }) as OIDCToken
   }
 
-  async verify(accessToken: string): Promise<KeycloakToken> {
+  async verify(accessToken: string): Promise<OIDCToken> {
     await this.request.get(this.config.introspect_url, {
       headers: {
         Authorization: 'Bearer ' + accessToken
       }
     })
 
-    return decode(accessToken, { json: true }) as KeycloakToken
+    return decode(accessToken, { json: true }) as OIDCToken
   }
 }

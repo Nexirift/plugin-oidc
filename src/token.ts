@@ -4,7 +4,7 @@
  * At the time of copying this file, the library was licensed under the MIT license.
  */
 
-export class KeycloakToken {
+export class OIDCToken {
   iss: string;
   sub: string;
   aud: string | string[];
@@ -18,7 +18,7 @@ export class KeycloakToken {
   email_verified?: boolean;
   scope: string;
 
-  constructor(tokenContent: KeycloakToken) {
+  constructor(tokenContent: OIDCToken) {
     this.iss = tokenContent.iss;
     this.sub = tokenContent.sub;
     this.aud = tokenContent.aud;

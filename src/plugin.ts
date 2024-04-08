@@ -4,19 +4,19 @@
 
 import { createGraphQLError, Plugin } from 'graphql-yoga';
 import { createClient } from 'redis';
-import { KeycloakToken } from './token';
-import { Keycloak } from './oidc';
+import { OIDCToken } from './token';
+import { OIDC } from './oidc';
 
-export type KeycloakPluginOptions = KeycloakPluginOptionsBase;
+export type OIDCPluginOptions = OIDCPluginOptionsBase;
 
 /**
- * Represents the options for the Keycloak plugin.
+ * Represents the options for the OIDC plugin.
  */
-export interface KeycloakPluginOptionsBase {
+export interface OIDCPluginOptionsBase {
 	/**
-	 * The Keycloak instance to use for token verification.
+	 * The OIDC instance to use for token verification.
 	 */
-	keycloak: Keycloak;
+	oidc: OIDC;
 
 	/**
 	 * The Redis client to use for caching token payloads.
@@ -25,7 +25,7 @@ export interface KeycloakPluginOptionsBase {
 
 	/**
 	 * The field to use to extend the context with the token payload.
-	 * @default 'keycloak'
+	 * @default 'oidc'
 	 */
 	extendContextField?: string;
 
@@ -70,17 +70,17 @@ export interface KeycloakPluginOptionsBase {
 }
 
 /**
- * Initializes the Keycloak plugin and returns a Plugin object.
+ * Initializes the OIDC plugin and returns a Plugin object.
  *
- * @param options - The options for configuring the Keycloak plugin.
+ * @param options - The options for configuring the OIDC plugin.
  * @returns A Plugin object that can be used with GraphQL Yoga.
  */
-export function useKeycloak(options: KeycloakPluginOptions): Plugin {
+export function useOIDC(options: OIDCPluginOptions): Plugin {
 	// Destructure the options object and assign default values
 	const {
-		keycloak,
+		oidc,
 		redis,
-		extendContextField = 'keycloak',
+		extendContextField = 'oidc',
 		cachePrefix = 'tokens',
 		allowedRoles,
 		requireAuth = false,
@@ -95,7 +95,7 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 	} = options;
 
 	// Create a WeakMap to store the token payload by request
-	const payloadByRequest = new WeakMap<Request, KeycloakToken | string>();
+	const payloadByRequest = new WeakMap<Request, OIDCToken | string>();
 
 	return {
 		async onRequestParse({ request, serverContext, url }) {
@@ -107,8 +107,8 @@ export function useKeycloak(options: KeycloakPluginOptions): Plugin {
 				// Check if the token exists in the Redis cache
 				if (!(await redis.exists(`${cachePrefix}:${token}`))) {
 					try {
-						// Verify the token using the Keycloak instance
-						const kcToken = await keycloak.jwt.verify(token);
+						// Verify the token using the OIDC instance
+						const kcToken = await oidc.jwt.verify(token);
 
 						// Store the token content in the Redis cache
 						await redis.set(
@@ -205,7 +205,7 @@ function unauthorizedError(
  * @returns The extracted token or undefined if no token is found.
  * @throws An unauthorizedError if an unsupported token type is provided.
  */
-const defaultGetToken: NonNullable<KeycloakPluginOptions['getToken']> = ({
+const defaultGetToken: NonNullable<OIDCPluginOptions['getToken']> = ({
 	request
 }: any) => {
 	// Extract the token from the Authorization header

@@ -3,7 +3,7 @@
 ![NPM Downloads](https://img.shields.io/npm/dt/%40nexirift%2Fplugin-oidc)
 
 # plugin-oidc
-A basic [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga) plugin that adds functionality to authenticate users using the [Keycloak](https://www.keycloak.org/) service.
+A basic [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga) plugin that adds functionality to authorize users using an OpenID Connect compatible service.
 
 ## How does it work?
 
