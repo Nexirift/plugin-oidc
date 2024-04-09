@@ -4,8 +4,8 @@
  * At the time of copying this file, the library was licensed under the MIT license.
  */
 
-import { IExternalConfig, OIDCToken } from './index';
 import { AxiosInstance } from 'axios';
+import { IExternalConfig, OIDCToken } from './index';
 
 export class Jwt {
 	constructor(

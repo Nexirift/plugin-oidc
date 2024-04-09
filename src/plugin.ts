@@ -4,8 +4,8 @@
 
 import { createGraphQLError, Plugin } from 'graphql-yoga';
 import { createClient } from 'redis';
-import { OIDCToken } from './token';
 import { OIDC } from './oidc';
+import { OIDCToken } from './token';
 
 export type OIDCPluginOptions = OIDCPluginOptionsBase;
 
