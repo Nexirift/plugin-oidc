@@ -143,7 +143,9 @@ export function useOIDC(options: OIDCPluginOptions): Plugin {
 
 				// Check if the token has the necessary roles
 				if (allowedRoles && allowedRoles.length > 0) {
-					const roles = JSON.parse(ct).realm_access.roles;
+					const roles =
+						JSON.parse(ct).realm_access.roles ||
+						JSON.parse(ct).groups;
 					if (
 						!roles.some((role: string) =>
 							allowedRoles.includes(role)
