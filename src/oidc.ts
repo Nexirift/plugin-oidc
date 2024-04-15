@@ -12,7 +12,10 @@ export class OIDC {
 
 	constructor(cfg: IExternalConfig) {
 		const client = Axios.create({
-			baseURL: cfg.introspect_url
+			baseURL: cfg.introspect_url,
+			headers: {
+				'Accept-Encoding': 'gzip, deflate' // Note the missing Brotli here (br)
+			}
 		});
 		this.jwt = new Jwt(cfg, client);
 	}
