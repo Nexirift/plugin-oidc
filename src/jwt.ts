@@ -4,8 +4,10 @@
  * At the time of copying this file, the library was licensed under the MIT license.
  */
 
-import { AxiosInstance } from 'axios';
+import { AxiosError, AxiosInstance } from 'axios';
 import { IExternalConfig, OIDCToken } from './index';
+import { GraphQLError } from 'graphql';
+import { createGraphQLError } from 'graphql-yoga';
 
 export class Jwt {
 	constructor(
@@ -14,19 +16,37 @@ export class Jwt {
 	) {}
 
 	async verify(accessToken: string): Promise<OIDCToken> {
-		const request = await this.request.post(
-			this.config.introspect_url,
-			{
-				token: accessToken,
-				client_id: this.config.client_id,
-				client_secret: this.config.client_secret
-			},
-			{
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
+		try {
+			const request = await this.request.post(
+				this.config.introspect_url,
+				{
+					token: accessToken,
+					client_id: this.config.client_id,
+					client_secret: this.config.client_secret
+				},
+				{
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					}
 				}
+			);
+
+			return request.data as OIDCToken;
+		} catch (exception: AxiosError | any) {
+			if (exception?.cause.code === 'ECONNREFUSED') {
+				throw createGraphQLError(
+					'Failed to contact the authentication server to verify token. Is it offline?',
+					{
+						extensions: {
+							http: {
+								status: 500
+							}
+						}
+					}
+				);
 			}
-		);
-		return request.data as OIDCToken;
+
+			return {} as OIDCToken;
+		}
 	}
 }

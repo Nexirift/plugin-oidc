@@ -128,7 +128,6 @@ export function useOIDC(options: OIDCPluginOptions): Plugin {
 						);
 					} catch (ex) {
 						// If the token is invalid, throw an unauthorized error
-						console.log(ex);
 						throw unauthorizedError(messages.invalidToken);
 					}
 				}
