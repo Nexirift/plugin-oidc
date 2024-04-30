@@ -34,6 +34,9 @@ export class Jwt {
 			return request.data as OIDCToken;
 		} catch (exception: AxiosError | any) {
 			if (exception?.cause.code === 'ECONNREFUSED') {
+				console.error(
+					'Failed to contact the authentication server to verify token. Is it offline?'
+				);
 				throw createGraphQLError(
 					'Failed to contact the authentication server to verify token. Is it offline?',
 					{
