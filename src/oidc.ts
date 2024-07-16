@@ -3,6 +3,7 @@ import { Jwt } from './jwt';
 
 export interface IExternalConfig {
 	introspect_url: string;
+	userinfo_url?: string;
 	client_id?: string;
 	client_secret?: string;
 }

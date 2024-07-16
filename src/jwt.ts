@@ -31,6 +31,22 @@ export class Jwt {
 				}
 			);
 
+			if (request.data.active === true && this.config.userinfo_url) {
+				const userinfoRequest = await this.request.get(
+					this.config.userinfo_url,
+					{
+						headers: {
+							Authorization: `Bearer ${accessToken}`
+						}
+					}
+				);
+
+				return {
+					...request.data,
+					...userinfoRequest.data
+				} as OIDCToken;
+			}
+
 			return request.data as OIDCToken;
 		} catch (exception: AxiosError | any) {
 			if (exception?.cause.code === 'ECONNREFUSED') {
