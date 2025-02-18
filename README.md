@@ -1,3 +1,7 @@
+# Unmaintained
+
+This project is currently unmaintained. While it hasn't received updates for over 7 months, it remains fully functional. However, Nexirift is moving towards a unified authentication server using different technologies, eliminating our need for OpenID authentication. If you're interested in maintaining or contributing to this project, we welcome your involvement - please contact us at [maintain@nexirift.com](mailto:maintain@nexirift.com).
+
 ![NPM Version](https://img.shields.io/npm/v/%40nexirift%2Fplugin-oidc)
 ![NPM License](https://img.shields.io/npm/l/%40nexirift%2Fplugin-oidc)
 ![NPM Downloads](https://img.shields.io/npm/dt/%40nexirift%2Fplugin-oidc)
